@@ -1,16 +1,19 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  username: z.string().min(3).max(100),
-  password: z.string().min(6).max(100)
+  email: z.string().email(),
+  password: z.string()
 });
 
 export const createUserSchema = z.object({
-  username: z.string().min(3).max(100),
-  password: z.string().min(6).max(100),
+  email: z.string().email(),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters long")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character")
+    .max(100),
   role: z.enum(["STUDENT", "AAO", "ADMIN"]),
-  fullName: z.string().min(2).max(191),
-  email: z.string().email().optional()
+  fullName: z.string().min(2).max(191)
 });
 
 export const courseSchema = z.object({

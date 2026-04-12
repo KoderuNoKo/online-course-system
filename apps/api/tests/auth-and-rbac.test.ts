@@ -22,7 +22,7 @@ describe("auth and RBAC", () => {
 
   it("rejects invalid credentials", async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
-    const res = await request(app).post("/api/auth/login").send({ username: "unknownuser", password: "wrongpass" });
+    const res = await request(app).post("/api/auth/login").send({ email: "unknownuser@test.abc", password: "wrongpass" });
     expect(res.status).toBe(401);
   });
 

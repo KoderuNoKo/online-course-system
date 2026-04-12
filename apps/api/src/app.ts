@@ -68,10 +68,10 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.post("/api/auth/login", async (req, res, next) => {
   try {
     const payload = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({ where: { username: payload.username } });
-    if (!user) throw unauthorized("Invalid username or password");
+    const user = await prisma.user.findUnique({ where: { email: payload.email } });
+    if (!user) throw unauthorized("Invalid email or password");
     if (hashPassword(payload.password, user.salt) !== user.passwordHash) {
-      throw unauthorized("Invalid username or password");
+      throw unauthorized("Invalid email or password");
     }
     const token = createSessionToken();
     await prisma.session.create({
@@ -82,7 +82,7 @@ app.post("/api/auth/login", async (req, res, next) => {
       secure: config.nodeEnv === "production",
       sameSite: "lax"
     });
-    res.json({ user: { id: user.id, username: user.username, role: user.role, fullName: user.fullName } });
+    res.json({ user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName } });
   } catch (error) {
     next(error);
   }
@@ -101,7 +101,7 @@ app.post("/api/auth/logout", requireAuth, async (req: Request, res, next) => {
 
 app.get("/api/auth/me", requireAuth, (req: AuthedRequest, res) => {
   const user = req.user!;
-  res.json({ user: { id: user.id, username: user.username, role: user.role, fullName: user.fullName } });
+  res.json({ user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName } });
 });
 
 app.get("/api/student/courses", requireAuth, requireRole(["STUDENT"]), async (req, res, next) => {
@@ -458,7 +458,7 @@ app.delete("/api/aao/courses/:id", requireAuth, requireRole(["AAO"]), async (req
 app.get("/api/admin/users", requireAuth, requireRole(["ADMIN"]), async (_req, res, next) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, username: true, role: true, fullName: true, email: true, status: true, createdAt: true }
+      select: { id: true, email: true, role: true, fullName: true, status: true, createdAt: true }
     });
     res.json(users);
   } catch (error) {
@@ -472,17 +472,16 @@ app.post("/api/admin/users", requireAuth, requireRole(["ADMIN"]), async (req, re
     const salt = createSalt();
     const user = await prisma.user.create({
       data: {
-        username: payload.username,
+        email: payload.email,
         passwordHash: hashPassword(payload.password, salt),
         salt,
         role: payload.role,
-        fullName: payload.fullName,
-        email: payload.email
+        fullName: payload.fullName
       }
     });
-    res.status(201).json({ id: user.id, username: user.username, role: user.role });
+    res.status(201).json({ id: user.id, email: user.email, role: user.role });
   } catch (error: any) {
-    if (error.code === "P2002") return next(badRequest("Username or email already exists"));
+    if (error.code === "P2002") return next(badRequest("Email already exists"));
     next(error);
   }
 });

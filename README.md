@@ -127,12 +127,12 @@ Admin:
 
 ## Seeded Accounts
 
-- Admin: `admin / Admin@123`
-- AAO: `aao1 / Aao@12345`
+- Admin: `admin@university.edu / Admin@123`
+- AAO: `aao1@university.edu / Aao@12345`
 - Students:
-  - `student1 / Student@123`
-  - `student2 / Student@123`
-  - `student3 / Student@123`
+  - `student1@university.edu / Student@123`
+  - `student2@university.edu / Student@123`
+  - `student3@university.edu / Student@123`
 
 ## Business Rule Notes / Assumptions
 
