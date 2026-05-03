@@ -8,7 +8,7 @@ import { LogIn } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button, Card, CardBody, Input, Label } from "../../components/ui";
 
-type Inputs = { username: string; password: string };
+type Inputs = { email: string; password: string };
 
 export default function LoginPage() {
   const { register, handleSubmit } = useForm<Inputs>();
@@ -37,26 +37,27 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md">
       <Card className="overflow-hidden shadow-lg shadow-slate-900/10">
-        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-8 text-white">
+        <div className="bg-gradient-to-r from-brand-600 to-brand-800 px-6 py-8 text-white">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
               <LogIn className="h-5 w-5" />
             </span>
             <div>
               <h1 className="text-xl font-bold">Welcome back</h1>
-              <p className="text-sm text-indigo-100">Sign in with your university account</p>
+              <p className="text-sm text-brand-100">Sign in with your university email</p>
             </div>
           </div>
         </div>
         <CardBody>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="login-user">Username</Label>
+              <Label htmlFor="login-email">Email</Label>
               <Input
-                id="login-user"
-                placeholder="e.g. student1"
-                autoComplete="username"
-                {...register("username", { required: true })}
+                id="login-email"
+                type="email"
+                placeholder="student@university.edu"
+                autoComplete="email"
+                {...register("email", { required: true })}
               />
             </div>
             <div>
@@ -77,7 +78,7 @@ export default function LoginPage() {
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-500">
-            <Link href="/" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/" className="font-medium text-brand-600 hover:text-brand-500 transition-colors">
               ← Back to home
             </Link>
           </p>

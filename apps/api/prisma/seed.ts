@@ -3,18 +3,17 @@ import { createSalt, hashPassword } from "../src/security.js";
 
 const prisma = new PrismaClient();
 
-const createUser = async (username: string, password: string, role: Role, fullName: string) => {
+const createUser = async (email: string, password: string, role: Role, fullName: string) => {
   const salt = createSalt();
   return prisma.user.upsert({
-    where: { username },
+    where: { email },
     update: {},
     create: {
-      username,
+      email,
       passwordHash: hashPassword(password, salt),
       salt,
       role,
-      fullName,
-      email: `${username}@university.edu`
+      fullName
     }
   });
 };
@@ -32,11 +31,11 @@ async function main() {
     }
   });
 
-  const admin = await createUser("admin", "Admin@123", Role.ADMIN, "System Administrator");
-  const aao = await createUser("aao1", "Aao@12345", Role.AAO, "AAO Officer");
-  const s1 = await createUser("student1", "Student@123", Role.STUDENT, "Alice Nguyen");
-  const s2 = await createUser("student2", "Student@123", Role.STUDENT, "Bob Tran");
-  await createUser("student3", "Student@123", Role.STUDENT, "Charlie Pham");
+  const admin = await createUser("admin@university.edu", "Admin@123", Role.ADMIN, "System Administrator");
+  const aao = await createUser("aao1@university.edu", "Aao@12345", Role.AAO, "AAO Officer");
+  const s1 = await createUser("student1@university.edu", "Student@123", Role.STUDENT, "Alice Nguyen");
+  const s2 = await createUser("student2@university.edu", "Student@123", Role.STUDENT, "Bob Tran");
+  await createUser("student3@university.edu", "Student@123", Role.STUDENT, "Charlie Pham");
 
   const courses = [
     { courseCode: "CS101", courseName: "Intro to Programming", department: "Computer Science", lecturer: "Dr. Linh", classroom: "A101", schedule: "Mon 08:00-10:00", maxCapacity: 40 },
@@ -73,7 +72,7 @@ async function main() {
     create: { studentId: s2.id, semesterId: semester.id, status: "DRAFT" }
   });
 
-  console.log({ admin: admin.username, aao: aao.username, semester: semester.code });
+  console.log({ admin: admin.email, aao: aao.email, semester: semester.code });
 }
 
 main()

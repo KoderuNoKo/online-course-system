@@ -7,7 +7,21 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-slate-50;
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    @apply text-slate-800 antialiased selection:bg-brand-200 selection:text-brand-900 min-h-screen relative;
+    background-color: #f8fafc;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(220, 100%, 96%, 1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(240, 100%, 96%, 1) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsla(210, 100%, 97%, 1) 0px, transparent 50%);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
   }
 }

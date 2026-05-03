@@ -6,6 +6,7 @@ import { ClipboardCheck, Plus } from "lucide-react";
 import { api } from "../../../lib/api";
 import type { RegistrationForm } from "../../../lib/types";
 import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Spinner } from "../../../components/ui";
+import toast from "react-hot-toast";
 
 function statusTone(s: RegistrationForm["status"]) {
   if (s === "APPROVED") return "success";
@@ -19,6 +20,7 @@ export default function StudentFormPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const load = async () => {
     try {
@@ -50,13 +52,16 @@ export default function StudentFormPage() {
     }
   };
 
-  const submitForm = async () => {
+  const confirmAndSubmit = async () => {
     try {
       setBusy(true);
       setError("");
       await api("/api/student/form/submit", { method: "POST" });
+      setIsConfirming(false);
+      toast.success("Registration form submitted successfully!");
       await load();
     } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Submit failed");
       setError(e instanceof Error ? e.message : "Submit failed");
     } finally {
       setBusy(false);
@@ -148,7 +153,7 @@ export default function StudentFormPage() {
               disabled={
                 !form || form.items.length === 0 || !canEdit || busy || form.status === "PENDING"
               }
-              onClick={submitForm}
+              onClick={() => setIsConfirming(true)}
             >
               <ClipboardCheck className="h-4 w-4" />
               Submit for AAO approval
@@ -162,6 +167,26 @@ export default function StudentFormPage() {
           </div>
         </CardBody>
       </Card>
+
+      {isConfirming && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-all">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-float text-left">
+            <h3 className="text-xl font-bold text-slate-900">Confirm Submission</h3>
+            <p className="mt-2 text-slate-600">
+              Are you sure you want to submit your registration form for AAO approval? 
+              <strong className="block mt-2 font-medium text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100">
+                You cannot modify the form after this!
+              </strong>
+            </p>
+            <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
+              <Button variant="outline" onClick={() => setIsConfirming(false)} disabled={busy}>Cancel</Button>
+              <Button variant="primary" onClick={confirmAndSubmit} disabled={busy}>
+                {busy ? "Submitting..." : "Yes, submit form"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,19 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus, Mail } from "lucide-react";
 import { api } from "../../../lib/api";
-import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Input, Label, Select, Spinner } from "../../../components/ui";
+import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Spinner } from "../../../components/ui";
+import toast from "react-hot-toast";
 
-type User = { id: number; username: string; role: string; fullName: string; email?: string | null; status?: string };
-type UserInput = {
-  username: string;
-  password: string;
-  role: "STUDENT" | "AAO" | "ADMIN";
-  fullName: string;
-  email?: string;
-};
+type User = { id: number; email: string; role: string; fullName: string; status?: string };
 
 function roleTone(r: string) {
   if (r === "ADMIN") return "danger";
@@ -24,16 +17,13 @@ function roleTone(r: string) {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const { register, handleSubmit, reset } = useForm<UserInput>({ defaultValues: { role: "STUDENT" } });
 
   const load = async () => {
     try {
-      setError("");
       setUsers(await api<User[]>("/api/admin/users"));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load users");
+      toast.error(e instanceof Error ? e.message : "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -43,88 +33,37 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
-  const createUser = async (values: UserInput) => {
-    try {
-      setError("");
-      const body: Record<string, string> = {
-        username: values.username,
-        password: values.password,
-        role: values.role,
-        fullName: values.fullName
-      };
-      if (values.email?.trim()) body.email = values.email.trim();
-      await api("/api/admin/users", { method: "POST", body: JSON.stringify(body) });
-      reset({ role: "STUDENT" });
-      await load();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Create failed");
-    }
-  };
-
   const removeUser = async (id: number) => {
     if (!confirm("Permanently delete this user?")) return;
     try {
       await api(`/api/admin/users/${id}`, { method: "DELETE" });
+      toast.success("User deleted successfully");
       await load();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Delete failed");
+      toast.error(e instanceof Error ? e.message : "Delete failed");
     }
   };
 
   return (
     <div className="space-y-8">
-      <div>
-        <Link href="/admin" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-          ← Admin home
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <Link href="/admin" className="text-sm font-medium text-brand-600 hover:text-brand-500 transition-colors">
+            ← Admin home
+          </Link>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">User directory</h1>
+          <p className="mt-1 text-sm text-slate-500">View and manage all university accounts.</p>
+        </div>
+        <Link href="/admin/users/create">
+          <Button variant="primary">
+            <UserPlus className="h-4 w-4" />
+            Create new user
+          </Button>
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">User management</h1>
-        <p className="mt-1 text-sm text-slate-600">Create accounts and control access roles.</p>
       </div>
 
-      {error ? (
-        <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800 ring-1 ring-rose-200">{error}</p>
-      ) : null}
-
       <Card>
-        <CardHeader title="Create user" subtitle="New users can sign in immediately with the password you set." />
-        <CardBody>
-          <form onSubmit={handleSubmit(createUser)} className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label>Username</Label>
-              <Input {...register("username", { required: true })} />
-            </div>
-            <div>
-              <Label>Full name</Label>
-              <Input {...register("fullName", { required: true })} />
-            </div>
-            <div>
-              <Label>Password</Label>
-              <Input type="password" {...register("password", { required: true })} />
-            </div>
-            <div>
-              <Label>Email (optional)</Label>
-              <Input type="email" {...register("email")} />
-            </div>
-            <div>
-              <Label>Role</Label>
-              <Select {...register("role")}>
-                <option value="STUDENT">Student</option>
-                <option value="AAO">AAO Officer</option>
-                <option value="ADMIN">Admin</option>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" variant="primary" className="w-full md:w-auto">
-                <UserPlus className="h-4 w-4" />
-                Create user
-              </Button>
-            </div>
-          </form>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader title="All users" subtitle={`${users.length} account(s)`} />
+        <CardHeader title="All users" subtitle={`${users.length} account(s) registered`} />
         <CardBody className="p-0">
           {loading ? (
             <div className="flex justify-center py-16">
@@ -132,30 +71,33 @@ export default function AdminUsersPage() {
             </div>
           ) : users.length === 0 ? (
             <div className="p-6">
-              <EmptyState title="No users returned." />
+              <EmptyState title="No users found." hint="Add a new user to get started." />
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {users.map((u) => (
                 <li
                   key={u.id}
-                  className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between transition-colors hover:bg-slate-50/50"
                 >
-                  <div>
-                    <p className="font-medium text-slate-900">
-                      {u.fullName}{" "}
-                      <span className="font-normal text-slate-500">@{u.username}</span>
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <Badge tone={roleTone(u.role)}>{u.role}</Badge>
-                      {u.status ? <span className="text-xs text-slate-500">{u.status}</span> : null}
-                      {u.email ? <span className="text-sm text-slate-500">{u.email}</span> : null}
+                  <div className="flex items-start gap-4">
+                    <span className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                      <Mail className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="font-semibold text-slate-900">
+                        {u.fullName}
+                      </p>
+                      <p className="text-sm text-slate-500">{u.email}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge tone={roleTone(u.role)}>{u.role}</Badge>
+                        {u.status ? <span className="text-xs text-slate-400 capitalize">{u.status.toLowerCase()}</span> : null}
+                      </div>
                     </div>
                   </div>
                   <Button
-                    variant="danger"
-                    className="sm:w-auto"
-                    type="button"
+                    variant="outline"
+                    className="sm:w-auto text-rose-600 hover:bg-rose-50 border-transparent hover:border-rose-200"
                     onClick={() => removeUser(u.id)}
                   >
                     <Trash2 className="h-4 w-4" />
