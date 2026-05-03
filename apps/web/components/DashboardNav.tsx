@@ -18,7 +18,8 @@ export function DashboardNav({
       <div className="sticky top-20 space-y-1 p-4">
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</p>
         {items.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+          const basePath = `/${pathname.split('/')[1]}`;
+          const active = pathname === href || (pathname.startsWith(href + "/") && href !== basePath && href !== "/");
           return (
             <Link
               key={href}
@@ -48,7 +49,8 @@ export function MobileNav({
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 md:hidden">
       {items.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(href + "/");
+        const basePath = `/${pathname.split('/')[1]}`;
+        const active = pathname === href || (pathname.startsWith(href + "/") && href !== basePath && href !== "/");
         return (
           <Link
             key={href}

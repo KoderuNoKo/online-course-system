@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { api } from "../../../../lib/api";
 import { Button, Card, CardBody, CardHeader, Input, Label, Select } from "../../../../components/ui";
 import toast from "react-hot-toast";
@@ -27,6 +27,7 @@ type UserInput = z.infer<typeof createUserSchema>;
 export default function CreateUserPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<UserInput>({ 
     resolver: zodResolver(createUserSchema),
     defaultValues: { role: "STUDENT" } 
@@ -72,7 +73,22 @@ export default function CreateUserPage() {
               </div>
               <div className="space-y-1">
                 <Label>Password</Label>
-                <Input type="password" placeholder="••••••••" {...register("password")} className={errors.password ? "border-rose-300 focus:ring-rose-500/20" : ""} />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...register("password")} 
+                    className={`${errors.password ? "border-rose-300 focus:ring-rose-500/20" : ""} pr-11`} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {errors.password && <p className="text-sm text-rose-600 font-medium mt-1">{errors.password.message}</p>}
               </div>
               <div className="space-y-1">
